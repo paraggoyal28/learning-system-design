@@ -1,0 +1,146 @@
+classDiagram
+    class Hotel {
+      -String name
+      -List~HotelLocation~ locations
+      +addLocation(location)
+      +getLocation(name)
+    }
+    class HotelLocation {
+      -String name
+      -Address address
+      -List~Room~ rooms
+      -List~RoomBooking~ bookings
+      +search(style, startDate, durationInDays) List~Room~
+      +getBookingsForRoom(roomNumber)
+      +getBookingsForGuest(guestAccountId)
+    }
+    class Search {
+      <<interface>>
+      +search(style, startDate, durationInDays) List~Room~
+    }
+    class Room {
+      -String roomNumber
+      -RoomStyle style
+      -RoomStatus status
+      -BigDecimal bookingPrice
+      -List~RoomKey~ keys
+      -List~RoomHouseKeeping~ houseKeepingLog
+      +isRoomAvailable(start, end, bookings) boolean
+      +checkIn()
+      +checkOut()
+    }
+    class RoomBooking {
+      -String reservationNumber
+      -LocalDate startDate
+      -int durationInDays
+      -BookingStatus status
+      -Guest guest
+      -Room room
+      -Invoice invoice
+      -RoomKey roomKey
+      +checkIn()
+      +checkOut()
+      +cancel()
+      +isEligibleForFullRefund(time) boolean
+      +addCharge(charge)
+    }
+    class Person {
+      <<abstract>>
+      -String name
+      -Address address
+      -Account account
+    }
+    class Guest {
+      -List~RoomBooking~ bookings
+      +getBookings()
+    }
+    class Receptionist {
+      +createBooking(...)
+      +checkIn(...)
+      +checkOut(...)
+      +searchMember(...)
+    }
+    class Server {
+      +addRoomCharge(booking, charge)
+    }
+    class Manager {
+      -List~Person~ workers
+      +addWorker(worker)
+    }
+    class Housekeeper {
+      +addHouseKeeping(room, description, duration)
+    }
+    class RoomKey {
+      -String keyId
+      -String barcode
+      -boolean active
+      +assignRoom(room)
+      +deactivate()
+    }
+    class RoomHouseKeeping {
+      -String description
+      -Duration duration
+      -HousekeepingStatus status
+      +addHouseKeeping(room)
+      +complete(room)
+    }
+    class RoomCharge {
+      <<abstract>>
+      +toInvoiceItem() InvoiceItem
+    }
+    class Amenity
+    class RoomService
+    class KitchenService
+    class Invoice {
+      -List~InvoiceItem~ items
+      -List~Payment~ payments
+      +addItem(item)
+      +getTotalAmount() BigDecimal
+      +refundSuccessfulPayments() BigDecimal
+    }
+    class InvoiceItem
+    class Payment {
+      -PaymentMethod method
+      -BigDecimal amount
+      -PaymentStatus status
+      +process()
+      +refund()
+    }
+    class Notification
+    class NotificationService {
+      <<interface>>
+      +send(notification)
+    }
+    class HotelManagementService {
+      +searchRooms(...)
+      +bookRoom(...)
+      +payInvoice(...)
+      +checkIn(...)
+      +checkOut(...)
+      +cancelBooking(...)
+    }
+
+    Hotel "1" *-- "1..*" HotelLocation
+    HotelLocation "1" *-- "1..*" Room
+    HotelLocation "1" o-- "0..*" RoomBooking
+    Search <|.. HotelLocation
+    Person <|-- Guest
+    Person <|-- Receptionist
+    Person <|-- Server
+    Person <|-- Manager
+    Person <|-- Housekeeper
+    Guest "1" --> "0..*" RoomBooking
+    Room "1" --> "0..*" RoomBooking
+    Room "1" o-- "0..*" RoomKey
+    Room "1" o-- "0..*" RoomHouseKeeping
+    RoomBooking "1" *-- "1" Invoice
+    RoomBooking "1" o-- "0..1" RoomKey
+    RoomCharge <|-- Amenity
+    RoomCharge <|-- RoomService
+    RoomCharge <|-- KitchenService
+    RoomCharge ..> InvoiceItem : creates
+    Invoice "1" *-- "1..*" InvoiceItem
+    Invoice "1" o-- "0..*" Payment
+    HotelManagementService --> Hotel
+    HotelManagementService --> NotificationService
+    NotificationService <|.. ConsoleNotificationService
